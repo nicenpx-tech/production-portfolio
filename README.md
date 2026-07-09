@@ -1,6 +1,7 @@
 # production-portfolio
 
-<!-- Project Structure -->
+### Project Structure
+```
 portfolio/
 
 apps/
