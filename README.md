@@ -26,7 +26,5 @@ packages/
     ├── package.json
     └── .storybook/                 
 ├── config/                         Shared Config
-├── types/
-├── shared/
-
-
+├── types/                          Shared Types
+├── shared/                         Shared SDK / Utils (ใช้ข้าม app)
