@@ -37,4 +37,7 @@ next-env.d.ts
 
 dist
 .turbo
+coverage
 storybook-static
+.env
+.env.local

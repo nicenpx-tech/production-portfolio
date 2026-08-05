@@ -17,6 +17,7 @@
   "module": "index.ts",
   "type": "module",
   "devDependencies": {
+    "@biomejs/biome": "^2.5.7",
     "@types/bun": "latest",
     "turbo": "^2.10.4"
   },
