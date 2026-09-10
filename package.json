@@ -14,7 +14,6 @@
     "test": "turbo test",
     "format": "biome format --write ."
   },
-  "module": "index.ts",
   "type": "module",
   "devDependencies": {
     "@biomejs/biome": "^2.5.7",

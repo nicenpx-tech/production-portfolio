@@ -1,0 +1,17 @@
+{
+  "name": "@repo/design-tokens",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./primitive": "./src/primitive/index.ts",
+    "./semantic": "./src/semantic/index.ts",
+    "./component": "./src/component/index.ts",
+    "./themes": "./src/themes/index.ts"
+  },
+  "types": "./src/index.ts",
+  "devDependencies": {
+    "@repo/tsconfig": "workspace:*"
+  }
+}
