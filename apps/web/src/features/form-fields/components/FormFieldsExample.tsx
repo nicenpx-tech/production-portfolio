@@ -174,7 +174,10 @@ export function FormFieldsExample({ onSubmit }: FormFieldsExampleProps) {
                 >
                   {PLANS.map((plan) => (
                     <div key={plan.value} className="flex items-center gap-2">
-                      <RadioGroupItem id={`plan-${plan.value}`} value={plan.value} />
+                      <RadioGroupItem
+                        id={`plan-${plan.value}`}
+                        value={plan.value}
+                      />
                       <Label htmlFor={`plan-${plan.value}`}>{plan.label}</Label>
                     </div>
                   ))}

@@ -15,7 +15,10 @@ const VALID_VALUES = {
 async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText("Name"), VALID_VALUES.name);
   await user.type(screen.getByLabelText("Message"), VALID_VALUES.message);
-  await user.selectOptions(screen.getByLabelText("Country"), VALID_VALUES.country);
+  await user.selectOptions(
+    screen.getByLabelText("Country"),
+    VALID_VALUES.country,
+  );
   await user.click(screen.getByRole("checkbox", { name: "Accept terms" }));
   await user.click(screen.getByRole("radio", { name: "Pro" }));
   await user.click(screen.getByRole("switch", { name: "Notifications" }));
@@ -28,13 +31,17 @@ describe("FormFieldsExample", () => {
     expect(screen.getByLabelText("Name")).toBeInTheDocument();
     expect(screen.getByLabelText("Message")).toBeInTheDocument();
     expect(screen.getByLabelText("Country")).toBeInTheDocument();
-    expect(screen.getByRole("checkbox", { name: "Accept terms" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("checkbox", { name: "Accept terms" }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: "Free" })).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: "Pro" })).toBeInTheDocument();
     expect(
       screen.getByRole("radio", { name: "Enterprise" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("switch", { name: "Notifications" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("switch", { name: "Notifications" }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Submit" })).toBeInTheDocument();
   });
 
@@ -64,7 +71,10 @@ describe("FormFieldsExample", () => {
       await screen.findByText("Please select a country."),
     ).toBeInTheDocument();
 
-    await user.selectOptions(screen.getByLabelText("Country"), VALID_VALUES.country);
+    await user.selectOptions(
+      screen.getByLabelText("Country"),
+      VALID_VALUES.country,
+    );
 
     expect(screen.getByLabelText("Country")).toHaveValue(VALID_VALUES.country);
     await waitFor(() => {
@@ -111,7 +121,9 @@ describe("FormFieldsExample", () => {
     expect(pro).toBeChecked();
     expect(screen.getByRole("radio", { name: "Free" })).not.toBeChecked();
     await waitFor(() => {
-      expect(screen.queryByText("Please select a plan.")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Please select a plan."),
+      ).not.toBeInTheDocument();
     });
   });
 
