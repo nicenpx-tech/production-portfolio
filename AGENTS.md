@@ -1910,3 +1910,43 @@ Form
 Next.js BFF
   ↓
 Go Backend
+
+⸻
+
+89. Form Field Rules
+
+React Hook Form is mandatory for application forms.
+
+Zod is the validation source of truth.
+
+Use @hookform/resolvers for Zod integration.
+
+Use FormField for fields managed by RHF.
+
+Use register only for components that support the normal input
+contract (value/onChange/onBlur/name/ref).
+
+Use controlled mapping for Select, Checkbox, RadioGroup, Switch, and
+similar components:
+
+* Checkbox / Switch: checked={field.value} + onCheckedChange={field.onChange}
+* RadioGroup: value={field.value} + onValueChange={field.onChange}
+* Native Select: standard input contract; the RHF field may be spread
+
+Do not use useState for individual form fields.
+
+Feature/business schemas belong under the feature.
+
+Shared form presentation primitives belong in @repo/ui.
+
+Preserve accessibility attributes from the shared Form system.
+
+Do not create unnecessary field wrapper abstractions
+(FormInput, FormSelect, FormCheckbox, ...).
+
+Every controlled field MUST have an explicit defaultValues entry so
+no control transitions from uncontrolled to controlled.
+
+page.tsx remains composition-only.
+
+API access must follow the BFF boundary.
