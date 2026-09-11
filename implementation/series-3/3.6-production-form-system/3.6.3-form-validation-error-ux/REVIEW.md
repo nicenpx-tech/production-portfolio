@@ -106,7 +106,7 @@ PASS (one formatting diff fixed, then clean)
 
 bun run test
 
-PASS (17 form-fields tests: 9 from 3.6.2 + 8 new; 13 total workspace
+PASS (17 form-fields tests: 9 from 3.6.2 + 8 new; 21 total workspace
 tests including 3.6.1)
 
 ---

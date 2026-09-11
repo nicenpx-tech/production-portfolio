@@ -66,7 +66,7 @@ Rules:
 Verification:
 - typecheck PASS
 - lint PASS
-- tests PASS (17 form-fields, 13 total incl. foundation)
+- tests PASS (17 form-fields, 21 total incl. foundation)
 - build PASS
 Next:
 Series 3.6.4
