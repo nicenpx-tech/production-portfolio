@@ -335,7 +335,9 @@ describe("FormFieldsExample", () => {
     await user.click(screen.getByRole("button", { name: "Submit" }));
 
     expect(handleSubmit).toHaveBeenCalledTimes(1);
-    const submittingButton = screen.getByRole("button", { name: "Submitting…" });
+    const submittingButton = screen.getByRole("button", {
+      name: "Submitting…",
+    });
     expect(submittingButton).toBeDisabled();
 
     resolveSubmit?.();
