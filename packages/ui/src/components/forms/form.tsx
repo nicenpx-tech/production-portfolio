@@ -67,11 +67,15 @@ export const Form = FormProvider;
 
 /**
  * FormField - Controller bound to a form field name
+ *
+ * TTransformedValues is forwarded so forms with transformed values
+ * (schema input ≠ output) keep the transformed type on field state.
  */
 export const FormField = <
 	TFieldValues extends FieldValues = FieldValues,
 	TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->(props: ControllerProps<TFieldValues, TName>) => {
+	TTransformedValues = TFieldValues,
+>(props: ControllerProps<TFieldValues, TName, TTransformedValues>) => {
 	return (
 		<FormFieldContext.Provider value={{ name: props.name }}>
 			<Controller {...props} />
