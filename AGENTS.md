@@ -1950,3 +1950,51 @@ no control transitions from uncontrolled to controlled.
 page.tsx remains composition-only.
 
 API access must follow the BFF boundary.
+
+⸻
+
+90. Validation & Error UX Rules
+
+Zod is the business validation source of truth.
+
+Do NOT duplicate validation rules in components, local state, or
+utility functions.
+
+React Hook Form owns form state (errors, touched, dirty, submitting).
+
+Do NOT mirror these into local React state.
+
+Prefer mode: "onBlur" with reValidateMode: "onChange" as the default
+form UX convention: errors appear on blur or submit, and clear as
+soon as a corrected value becomes valid after a failed submit.
+
+Field errors MUST render through the shared FormMessage.
+
+There MUST be one error source per field.
+
+Do NOT create a second error-message component or system.
+
+Error messages MUST be specific, actionable, and user-facing.
+
+Never expose raw Zod error structures or internal details.
+
+Failed submits MUST NOT clear or reset entered values.
+
+Rely on RHF shouldFocusError to focus the first invalid field.
+
+Do NOT build custom focus-management abstractions.
+
+Submit buttons reflect formState.isSubmitting.
+
+Do NOT create local loading state for submission.
+
+Keep form-level messaging minimal.
+
+A form-level line may orient users after a failed submit, but it
+MUST NOT duplicate field errors.
+
+Do NOT add error summaries unless the form size and UX clearly
+justify them.
+
+Server validation and server errors belong to the BFF/backend
+series and MUST NOT be simulated inside feature forms.

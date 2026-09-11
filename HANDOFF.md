@@ -45,3 +45,28 @@ Verification:
 - build PASS
 Next:
 Series 3.6.3 — Form Validation & Error UX
+
+## Series 3.6.3 — Form Validation & Error UX
+Status: Completed (branch feature/series-3.6.3-form-validation-error-ux)
+Implemented:
+- deliberate validation timing: mode onBlur + reValidateMode onChange
+  (documented rationale)
+- form-level orientation line while isSubmitted && !isValid
+  (role=alert, no duplication of field errors)
+- submit button reflects formState.isSubmitting (disabled + relabel)
+- failed-submit focus via RHF shouldFocusError; values retained
+- extended behavioral tests: timing, min/max length, revalidation,
+  focus, form-level message lifecycle, submitting state, keyboard
+Rules:
+- Zod is the business validation source of truth
+- RHF owns form state; no local error/loading flags
+- one error source per field (FormMessage)
+- no error summaries unless justified
+- server validation/errors belong to the BFF series
+Verification:
+- typecheck PASS
+- lint PASS
+- tests PASS (17 form-fields, 13 total incl. foundation)
+- build PASS
+Next:
+Series 3.6.4
