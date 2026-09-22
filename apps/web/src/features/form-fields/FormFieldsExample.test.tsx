@@ -12,6 +12,11 @@ const VALID_VALUES = {
   notifications: true,
 };
 
+// Programmatically built so the fixtures stay readable while exceeding
+// the schema limits by exactly one character.
+const LONG_NAME = "a".repeat(101);
+const LONG_MESSAGE = "x".repeat(1001);
+
 async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText("Name"), VALID_VALUES.name);
   await user.type(screen.getByLabelText("Message"), VALID_VALUES.message);
@@ -198,5 +203,160 @@ describe("FormFieldsExample", () => {
     for (const id of describedIds) {
       expect(document.getElementById(id)).not.toBeNull();
     }
+  });
+
+  it("does not interrupt typing with errors before the first blur or submit", async () => {
+    const user = userEvent.setup();
+    render(<FormFieldsExample />);
+
+    // mode: "onBlur" - an invalid value must not shout while typing.
+    await user.type(screen.getByLabelText("Name"), "A");
+    expect(
+      screen.queryByText("Name must be at least 2 characters."),
+    ).not.toBeInTheDocument();
+
+    // Leaving the field runs the validation for the first time.
+    await user.tab();
+    expect(
+      await screen.findByText("Name must be at least 2 characters."),
+    ).toBeInTheDocument();
+  });
+
+  it("shows minimum length errors for name and message", async () => {
+    const user = userEvent.setup();
+    render(<FormFieldsExample />);
+
+    await user.type(screen.getByLabelText("Name"), "A");
+    await user.tab();
+    expect(
+      await screen.findByText("Name must be at least 2 characters."),
+    ).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText("Message"), "short");
+    await user.tab();
+    expect(
+      await screen.findByText("Message must be at least 10 characters."),
+    ).toBeInTheDocument();
+  });
+
+  it("rejects values that exceed the maximum length", async () => {
+    const user = userEvent.setup();
+    render(<FormFieldsExample />);
+
+    await user.type(screen.getByLabelText("Name"), LONG_NAME);
+    await user.tab();
+    expect(
+      await screen.findByText("Name must be at most 100 characters."),
+    ).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText("Message"), LONG_MESSAGE);
+    await user.tab();
+    expect(
+      await screen.findByText("Message must be at most 1000 characters."),
+    ).toBeInTheDocument();
+  });
+
+  it("clears the name error on change after a failed submit without blur", async () => {
+    const user = userEvent.setup();
+    render(<FormFieldsExample />);
+
+    await user.click(screen.getByRole("button", { name: "Submit" }));
+    expect(
+      await screen.findByText("Name must be at least 2 characters."),
+    ).toBeInTheDocument();
+
+    // reValidateMode: "onChange" - after a failed submit the error must
+    // disappear as soon as the value becomes valid, with no blur or
+    // second submit required.
+    await user.type(screen.getByLabelText("Name"), VALID_VALUES.name);
+    await waitFor(() => {
+      expect(
+        screen.queryByText("Name must be at least 2 characters."),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  it("focuses the first invalid field on a failed submit and keeps valid values", async () => {
+    const user = userEvent.setup();
+    render(<FormFieldsExample />);
+
+    await user.click(screen.getByRole("button", { name: "Submit" }));
+    expect(screen.getByLabelText("Name")).toHaveFocus();
+
+    // Correct only the focused field and submit again: the remaining
+    // errors stay, the corrected value is retained, and focus moves to
+    // the next invalid field.
+    await user.type(screen.getByLabelText("Name"), VALID_VALUES.name);
+    await user.click(screen.getByRole("button", { name: "Submit" }));
+
+    expect(screen.getByLabelText("Name")).toHaveValue(VALID_VALUES.name);
+    expect(screen.getByLabelText("Message")).toHaveFocus();
+    expect(
+      screen.getByText("Message must be at least 10 characters."),
+    ).toBeInTheDocument();
+  });
+
+  it("shows the form-level message while invalid and removes it when valid", async () => {
+    const user = userEvent.setup();
+    render(<FormFieldsExample />);
+
+    await user.click(screen.getByRole("button", { name: "Submit" }));
+    expect(
+      await screen.findByText(
+        "Please correct the highlighted fields and try again.",
+      ),
+    ).toBeInTheDocument();
+
+    await fillValidForm(user);
+    await user.click(screen.getByRole("button", { name: "Submit" }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("status")).toBeInTheDocument();
+    });
+    expect(
+      screen.queryByText(
+        "Please correct the highlighted fields and try again.",
+      ),
+    ).not.toBeInTheDocument();
+  });
+
+  it("disables the submit button while submission is in progress", async () => {
+    const user = userEvent.setup();
+    let resolveSubmit: (() => void) | undefined;
+    const handleSubmit = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveSubmit = resolve;
+        }),
+    );
+    render(<FormFieldsExample onSubmit={handleSubmit} />);
+
+    await fillValidForm(user);
+    await user.click(screen.getByRole("button", { name: "Submit" }));
+
+    expect(handleSubmit).toHaveBeenCalledTimes(1);
+    const submittingButton = screen.getByRole("button", {
+      name: "Submitting…",
+    });
+    expect(submittingButton).toBeDisabled();
+
+    resolveSubmit?.();
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Submit" })).toBeEnabled();
+    });
+    expect(screen.getByRole("status")).toBeInTheDocument();
+  });
+
+  it("toggles the switch with the keyboard", async () => {
+    const user = userEvent.setup();
+    render(<FormFieldsExample />);
+
+    const notifications = screen.getByRole("switch", {
+      name: "Notifications",
+    });
+    notifications.focus();
+    await user.keyboard(" ");
+
+    expect(notifications).toBeChecked();
   });
 });

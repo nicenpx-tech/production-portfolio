@@ -55,11 +55,19 @@ export interface FormFieldsExampleProps {
  *   custom change callbacks, so field.value/field.onChange are mapped
  *   explicitly.
  *
+ * Validation lives in formFieldsSchema (Zod); this component only
+ * configures when validation runs. mode: "onBlur" avoids interrupting
+ * the user mid-typing, while reValidateMode: "onChange" clears an
+ * error as soon as the corrected value becomes valid after a failed
+ * submit.
+ *
  * All fields share one React Hook Form instance; no field-level useState.
  */
 export function FormFieldsExample({ onSubmit }: FormFieldsExampleProps) {
   const form = useForm<FormFieldsValues>({
     resolver: zodResolver(formFieldsSchema),
+    mode: "onBlur",
+    reValidateMode: "onChange",
     defaultValues: {
       name: "",
       message: "",
@@ -213,7 +221,18 @@ export function FormFieldsExample({ onSubmit }: FormFieldsExampleProps) {
             </FormItem>
           )}
         />
-        <Button type="submit">Submit</Button>
+        {/* RHF owns the submitting state; no local loading state. */}
+        <Button type="submit" disabled={form.formState.isSubmitting}>
+          {form.formState.isSubmitting ? "Submitting…" : "Submit"}
+        </Button>
+        {/* Form-level orientation line: points to the field errors instead
+            of duplicating them. Field messages remain the single source
+            per field. */}
+        {form.formState.isSubmitted && !form.formState.isValid && (
+          <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+            Please correct the highlighted fields and try again.
+          </p>
+        )}
         {form.formState.isSubmitSuccessful && (
           <output className="block text-sm text-green-600 dark:text-green-400">
             Valid values confirmed locally. BFF submission will be added in a
