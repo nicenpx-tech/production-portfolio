@@ -1,5 +1,6 @@
 export * from './form';
 export * from './Checkbox';
+export * from './FormRootError';
 export * from './Input';
 export * from './Label';
 export * from './RadioGroup';

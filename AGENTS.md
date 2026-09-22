@@ -1998,3 +1998,54 @@ justify them.
 
 Server validation and server errors belong to the BFF/backend
 series and MUST NOT be simulated inside feature forms.
+
+91. Form Composition
+
+Feature forms MUST initialize through useZodForm
+(apps/web/src/shared/forms/) instead of calling useForm with a
+hand-wired zodResolver.
+
+useZodForm fixes the project-wide defaults:
+
+* resolver: zodResolver(schema) — never re-implemented per form
+* mode: "onBlur", reValidateMode: "onChange" (section 90)
+* form state typed by the schema input (z.input)
+* submit handlers typed by the schema output (z.output)
+
+Feature components declare only their schema and default values.
+
+Form composition glue lives in apps/web/src/shared/forms/.
+Presentation of form state stays in @repo/ui. The UI package MUST
+NOT gain a Zod or resolver dependency: validation coupling belongs
+app-side.
+
+Schemas may transform values. When they do:
+
+* field state uses the schema input type
+* handleSubmit hands the component the output type
+* FormField forwards TTransformedValues; do not cast control props
+
+Server and submission failures:
+
+* surface through form.setError("root", ...) inside the submit
+  handler's error handling
+* render once per form through FormRootError
+* MUST NOT be mapped onto field errors
+* clear on the next submit attempt; recovery is resubmission
+
+Success confirmation MUST check isSubmitSuccessful together with
+the absence of a root error; catching a submission failure still
+resolves the submit promise.
+
+Do NOT reset form values after submission unless the UX calls for
+it. Edit forms retain their values across failed and successful
+submits.
+
+Empty-create default values live in the feature, not in shared
+composition. Defaults may use React Hook Form's DefaultValues
+shape (e.g. an unset enum field as undefined rendering a disabled
+placeholder option).
+
+Object-level refinements run only after every field check passes.
+Attach cross-field issues to the field they belong to via path so
+the message renders through that field's FormMessage.

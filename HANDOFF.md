@@ -70,3 +70,42 @@ Verification:
 - build PASS
 Next:
 Series 3.6.4
+
+## Series 3.6.4 — Form Composition & Validation Integration
+Status: Completed (branch feature/series-3.6.4-form-composition)
+Implemented:
+- shared composition module apps/web/src/shared/forms/:
+  useZodForm (zodResolver + onBlur/onChange defaults; form state
+  typed by z.input, submit handlers by z.output)
+- FormRootError in @repo/ui: renders form.errors.root once per
+  form (role=alert) for server/submission failures
+- FormField forwards TTransformedValues (non-breaking) so
+  transformed schemas keep their typing on field state
+- example feature features/profile/ + /[locale]/profile route:
+  number transformation (string in form state, number in submit
+  values), cross-field refine targeting contactEmail, edit-form
+  defaultValues prop, submission lifecycle (pending, root error,
+  guarded success, no reset)
+- 13 behavioral tests for the composed form
+Rules (AGENTS.md section 91 added):
+- feature forms init through useZodForm only
+- composition glue lives app-side; @repo/ui stays Zod-free
+- server/submission failures surface via setError("root", ...) +
+  FormRootError, never as field errors
+- success requires isSubmitSuccessful && no root error
+- do not reset after submit unless the UX calls for it
+- object-level refinements run only after field checks pass;
+  attach issues to their field via path
+Deliberately out of scope:
+- Storybook stories for app-level forms (Storybook covers
+  packages/ui legacy components only)
+- FormActions / field-wrapper abstractions (not justified)
+- BFF submission and real server validation (later series)
+Verification:
+- typecheck PASS
+- lint PASS
+- tests PASS (13 profile, 34 total)
+- build PASS (/[locale]/profile route present)
+Next:
+Series 3.6.5 (BFF submission / server error integration)
+
