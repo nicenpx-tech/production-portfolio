@@ -2049,3 +2049,116 @@ placeholder option).
 Object-level refinements run only after every field check passes.
 Attach cross-field issues to the field they belong to via path so
 the message renders through that field's FormMessage.
+92. Submission Contract
+
+Form submissions use one shared contract, owned by the app:
+
+    apps/web/src/types/form-submission.ts
+
+It defines:
+
+* FormFieldError - a field path plus a user-facing message
+* FormFailureKind - validation, business, auth, network, unknown
+* FormSubmissionFailure - the normalized failure
+* FormSubmissionResponse - the wire body of a BFF route
+* FormSubmissionResult - what the form layer consumes
+
+Backend error formats MUST NOT reach the UI. The BFF route and
+the browser client translate an answer into the contract above.
+
+The submitted values and the server response are different types.
+A form hands over its own values; the server may answer with
+another shape.
+
+93. BFF Boundary
+
+The browser calls the BFF, never the Go backend.
+
+    Browser -> Next.js BFF route -> Go API -> Database
+
+Browser code uses apps/web/src/lib/api-client.ts. The BFF uses
+apps/web/src/lib/backend-client.ts, which reads BACKEND_API_URL
+on the server.
+
+Backend addressing and backend credentials MUST NOT reach the
+browser bundle. A client component MUST NOT import a route handler
+or any other server-only module.
+
+Each form owns one route. A route is built with
+createFormSubmissionRoute, which lives in
+apps/web/src/lib/form-submission-route.ts, and declares its
+schema and its backend path.
+
+94. Server Validation
+
+Client-side validation is UX only. The BFF route validates the
+payload again with the feature schema before forwarding it.
+
+The schema that crosses the network is the payload schema. A form
+schema may differ in its input type only; the rules are shared,
+so the browser and the server judge the same values.
+
+A rejected payload answers 400 with the failure kind validation
+and one field error per rejected field.
+
+95. Error Mapping
+
+submitWithFeedback, in
+apps/web/src/lib/form-submission-handler.ts, turns a normalized
+result into React Hook Form errors.
+
+* validation - one field error per field, plus the root error
+* business, auth, network, unknown - the root error only
+
+Field errors render through FormMessage, the root error through
+FormRootError. A field path the form does not know is ignored.
+
+The handler MUST NOT reset the form and MUST NOT change field
+values. A failed submission keeps what the user typed.
+
+96. Submission State
+
+React Hook Form owns the submitting state. The submit button
+reflects formState.isSubmitting; no local loading state exists.
+
+The submit button is disabled while a submission is in flight, so
+a duplicate submission cannot start from the UI.
+
+The handler awaits an async success callback before it resolves,
+so the form is not marked successful before its follow-up work
+ended.
+
+97. Failure Recovery
+
+A new attempt starts clean. React Hook Form replaces the errors of
+the previous attempt when it validates again, so a stale message
+cannot survive a successful resubmission.
+
+Recovery is resubmission. The form stays filled, the user corrects
+what is wrong, and submits again.
+
+The success confirmation checks isSubmitSuccessful together with
+the absence of a root error, so a rejected submission never
+reports success.
+
+98. Testing
+
+Submission behaviour is tested at three levels:
+
+* unit - the handler maps failures onto form errors
+* unit - the client maps statuses onto failure kinds
+* integration - the route validates, forwards, and translates
+* integration - the form posts, renders, and recovers
+
+A test asserts what the user can observe: the request, the
+message, and the field state. Never a private helper.
+
+99. Documentation
+
+Every series keeps its report next to the report of the previous
+series:
+
+    implementation/series-3/<series>/<task>/FINAL-REPORT.md
+
+The report states what changed, which checks ran, and what is
+still open.
