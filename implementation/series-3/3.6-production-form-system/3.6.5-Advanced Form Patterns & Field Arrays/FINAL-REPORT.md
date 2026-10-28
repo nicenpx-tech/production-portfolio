@@ -1,128 +1,144 @@
 # Series 3.6.5 — Advanced Form Patterns & Field Arrays: Final Report
 
-## Overview
-This report summarizes the implementation of advanced form patterns including field arrays, conditional fields, and dependent fields in the Production Portfolio Starter Kit monorepo.
+## Status
 
-## What Was Implemented
+**PASS** — the patterns are implemented, tested, and documented.
 
-### 1. Shared Composition Module
-Created `apps/web/src/shared/forms/` directory with the following files:
-- `useFieldArray.ts` - Factory for field arrays with stable field IDs, add/remove/edit operations
-- `useWatch.ts` - Hook for watching form values to implement conditional fields
-- `useDependentField.ts` - Hook for dependent fields that react to parent field changes
-- `useShouldUnregister.ts` - Policy for field cleanup (retain strategy based on existing architecture)
-- `index.ts` - Export barrel for the composition module
+## Files Created
 
-### 2. Contact Feature
-Implemented `apps/web/src/features/contact/` with:
-- `ContactForm.tsx` - Form component featuring:
-  - Field array of contact methods (email/phone)
-  - Conditional fields based on contact method selection
-  - Dependent region field based on country selection
-  - Validation schema covering array size, item fields, conditional requirements, and cross-item constraints
-- `ContactForm.test.tsx` - Comprehensive tests covering:
-  - Field array operations (add, remove, edit, multiple items)
-  - Conditional field behavior (email/phone states, switching, hidden fields)
-  - Dependent field reactions (country changes, region updates)
-  - Accessibility (dynamic controls, validation errors)
-- `index.ts` - Feature export
-- `app/[locale]/contact/page.tsx` - Composition-only route
+- `apps/web/src/features/contact/schemas/contact.schema.ts` — the collection
+  rules, the per-item rules, the dependency rule, and the payload transform
+- `apps/web/src/features/contact/components/ContactForm.tsx` — the example
+  form
+- `apps/web/src/features/contact/ContactForm.test.tsx` — 16 behavioral tests
+- `apps/web/src/features/contact/index.ts` — the public feature API
+- `apps/web/src/app/[locale]/contact/page.tsx` — a composition-only route
 
-### 3. Documentation Updates
-- Added new sections to AGENTS.md covering:
-  - §92 Field Arrays
-  - §93 Conditional Fields  
-  - §94 Dependent Fields
-  - §95 Value Cleanup
-  - §96 Accessibility
-  - §97 Testing
-  - §98 Documentation
-  - §99 Strict Rules
-  - §100 Validation
-  - §101 Final Report
-  - §102 Recommendation for Series 3.6.6
+## Files Modified
 
-### 4. Untracked Docs Commit
-Committed the untracked 3.6.5 documentation folder containing:
-- PROMPT.md
-- TASK.md  
-- CHECKLIST.md
-- SUMMARY.md (this report)
+- `AGENTS.md` — the sections §92 to §102
 
-## Verification Results
+## Implementation Summary
 
-### 1. Type Checking
-```
-bun run typecheck
-✓ No type errors found
-```
+The series delivers the three patterns of the task, in one example form:
 
-### 2. Linting
-```
-bun run lint
-✓ No lint errors found
-```
-*Note: Biome formatter was run to fix line-width formatting issues as expected from previous series.*
+- a **field array** of contact methods, with the stable identity React Hook
+  Form supplies for every item
+- a **conditional field**, where only the slot of the selected contact type
+  is rendered and validated
+- a **dependent field**, where the country decides which regions may be
+  chosen
 
-### 3. Testing
-```
-bun run test
- ✓ form-foundation (4 tests)
- ✓ form-fields (17 tests) 
- ✓ profile (13 tests)
- ✓ contact (24 tests)
-Total: 58 tests passed
-```
+The shared composition layer (`apps/web/src/shared/forms/`) was **not**
+extended. The task forbids an abstraction that only wraps a line of React
+Hook Form code, and nothing in this series needs one: the form uses
+`useFieldArray` and `useWatch` directly, and the only shared piece stays
+`useZodForm`.
 
-### 4. Build
-```
-bun run build
-✓ Build completed successfully
-```
+## Architecture Decisions
 
-## Task Completion Assessment
+- **The schema owns the payload.** The item schema validates the slot of the
+  selected type and transforms the item into `{ type, value }`, so the
+  payload carries exactly the visible value. The form state keeps both
+  slots; the payload publishes one.
+- **The rules live in one place.** The collection rules live on the array,
+  the item rules on the item, and the dependency rule on the object, where
+  it names the field it belongs to.
+- **The dependency stays local.** `REGIONS_BY_COUNTRY` is a constant in the
+  schema module, so the dependent field never needs a request.
+- **No mirrored state.** The visible slot and the region list are derived
+  from `useWatch`, never from a copy in `useState`.
 
-### ✅ Requirements Met
-- **Field Arrays**: Implemented with stable field IDs and full CRUD operations
-- **Conditional Fields**: Implemented using `useWatch` hook for dynamic visibility
-- **Dependent Fields**: Implemented with `useDependentField` for reactive behavior
-- **Form Architecture**: Followed established patterns from Series 3.6.1-3.6.4
-- **Testing**: Comprehensive test coverage for all patterns and accessibility
-- **Documentation**: Updated AGENTS.md with new sections and committed docs folder
+## Field Array Behavior
 
-### ✅ AGENTS.md Rules Followed
-- §89 Form Field Rules: No field-level useState, explicit defaultValues
-- §90 Validation & Error UX Rules: Zod as sole validation source, RHF owns form state
-- §91 Form Composition Rules: `useZodForm` pattern, schema input/output split
-- New sections added for advanced patterns
+- The items come from `useFieldArray`, so every item carries the stable
+  `id` of React Hook Form. The index is only used to address the field.
+- `append` adds an empty method, `remove` drops one, and the values of the
+  remaining items are untouched.
+- The minimum of one and the maximum of three live on the array in the
+  schema. The add control is disabled at the maximum, so the user cannot
+  create a collection the schema rejects.
+- A collection error belongs to no single item, so it is rendered once
+  next to the collection, announced through `role="alert"`.
 
-### ✅ Code Quality
-- TypeScript strict mode maintained
-- No unnecessary dependencies introduced
-- Reused existing UI primitives from `packages/ui`
-- Followed feature-based architecture convention
-- Accessibility considerations implemented
+## Conditional Field Behavior
 
-## Limitations & Risks
+- The contact type decides which slot is rendered: the email input or the
+  phone input. The other one is not in the document.
+- Only the visible slot is validated. An invalid email that the user typed
+  before switching to phone does not block the submission.
+- The item schema transforms the item into `{ type, value }`, so the hidden
+  slot never reaches the payload.
 
-### Minor Issues
-- **Storybook Coverage**: Not applicable as Storybook only configured in packages/ui for legacy components
-- **Biome Formatting**: Line-width issues required manual fixes (consistent with previous series)
+## Cleanup / Unregister Decision
 
-### No Critical Issues
-- All tests pass
-- Type checking clean
-- Build successful
-- No breaking changes to existing functionality
+**The form state retains the value of a hidden field; the payload publishes
+only the visible value.**
 
-## Overall Assessment
+- Retention keeps what the user typed, so switching the type back and forth
+  does not destroy the input.
+- The schema decides what leaves the payload, which gives every form of
+  this project one policy.
+- A form that needs a different policy states it in its own feature.
 
-**Series 3.6.5 was completed successfully and meets all task requirements.** The implementation:
-- Follows the established form architecture
-- Implements all requested advanced patterns
-- Maintains code quality and type safety
-- Includes comprehensive testing
-- Updates documentation appropriately
-- Verifies successfully through all checks
+## Tests
 
-The implementation demonstrates production-quality patterns for complex forms while adhering to the monorepo's architectural standards and AGENTS.md guidelines.
+`apps/web/src/features/contact/ContactForm.test.tsx` — 16 tests:
+
+- the initial collection and the accessible names of every control
+- adding, removing, and editing an item
+- the value of a removed item does not reach the payload
+- the validated payload carries the transformed value
+- an invalid email and an invalid phone number are reported on their field
+- the minimum length is reported when every item is removed
+- the add control stops at the maximum
+- the phone field replaces the email field when the type changes
+- a hidden field does not block the submission
+- the regions follow the country, and a changed country clears the region
+- a region that does not belong to the country is reported
+- the entered values survive a rejected submission
+- the dynamic fields keep their labels and their accessible names
+
+## Validation
+
+- `bun run typecheck` — no type errors
+- `bun run lint` — no lint errors (Biome formatter applied first)
+- `bun run test` — 50 tests passed in 4 files
+  - form-foundation 4, form-fields 17, profile 13, contact 16
+- `bun run build` — successful, the route `/[locale]/contact` is registered
+- Storybook — not applicable, the shared UI package was not changed
+
+## Compliance
+
+- React Hook Form owns the state, Zod owns the validation
+- `useZodForm` owns the setup, the feature declares only schema and
+  defaults
+- no mirrored field state, no `useState` copy of a field value
+- stable field identity, the array index is never a React key
+- the dynamic fields keep their labels, their descriptions, and their
+  `role="alert"` messages
+- the tests are colocated with the feature
+- Tailwind classes only, no new UI library
+- no unrelated change
+
+## Known Limitations
+
+- **The form state widens the literal types of an enum.** `useZodForm`
+  infers its input and output through the type parameters of `z.ZodType`,
+  which widens `"jp" | "us" | "de"` to `string` in the form state. The
+  payload types stay precise. The example narrows the watched country
+  through the known options instead of casting it.
+- **The example does not submit anywhere.** The series forbids BFF
+  integration, so the form hands the validated payload to its `onSubmit`
+  prop.
+- **The collection error is read defensively.** React Hook Form nests an
+  error of a repeated field under `root`, which its types do not describe
+  for array fields, so the example narrows the value instead of casting it.
+
+## Recommendation
+
+Series 3.6.6 can begin. The form layer is ready for a submission that
+leaves the browser: React Hook Form owns the state, Zod owns the
+validation, and the schema owns the payload. The next series owns the
+boundary — the contract of a submission, the route that validates and
+forwards, and the mapping of a failure onto the form.

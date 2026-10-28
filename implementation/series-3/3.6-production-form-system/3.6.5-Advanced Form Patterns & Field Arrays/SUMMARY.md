@@ -1,5 +1,17 @@
 # Series 3.6.5 — Advanced Form Patterns & Field Arrays: Summary
 
+> **Note**: this file is the plan that was written before the
+> implementation. The plan changed in two places, and `FINAL-REPORT.md`
+> states what was actually built:
+>
+> - the shared composition module was **not** added, because the task
+>   forbids an abstraction that only wraps a line of React Hook Form code;
+>   the form uses `useFieldArray` and `useWatch` directly
+> - the example is a **contact methods** feature, and it carries the
+>   conditional field and the dependent field of the plan
+>
+> The branch is `feature/series-3.6.5-form-patterns`.
+
 ## Objective
 Implement advanced form patterns including field arrays, conditional fields, and dependent fields in the Production Portfolio Starter Kit monorepo, following the established form architecture and AGENTS.md rules.
 

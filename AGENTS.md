@@ -2049,3 +2049,148 @@ placeholder option).
 Object-level refinements run only after every field check passes.
 Attach cross-field issues to the field they belong to via path so
 the message renders through that field's FormMessage.
+92. Field Arrays
+
+A repeated collection uses the field array API of React Hook Form.
+
+    const { fields, append, remove } = useFieldArray({
+      control: form.control,
+      name: "methods",
+    });
+
+Every item is rendered with the identity the field array supplies:
+
+    {fields.map((field, index) => (
+      <div key={field.id}>...</div>
+    ))}
+
+Do NOT use the array index as a React key when a stable identifier
+exists. The index is a position, not an identity, and it changes when
+an item is removed.
+
+The collection rules belong to the schema:
+
+* the minimum and the maximum number of items
+* the rules of a single item
+
+A collection error belongs to no single item, so it is rendered once
+next to the collection.
+
+93. Conditional Fields
+
+A field that depends on another value is rendered from the watched
+value of that other field.
+
+    const methods = useWatch({ control: form.control, name: "methods" });
+
+Do NOT mirror a field value in local state. The form state is the
+single source of truth.
+
+The schema validates only what is visible. A hidden field must not
+block a submission, so the schema branches on the value that decides
+which field is shown, and the payload carries only the visible value.
+
+94. Dependent Fields
+
+A dependent field offers the values its parent allows:
+
+    const regions = REGIONS_BY_COUNTRY[country];
+
+The mapping is local and deterministic. A dependent field must not
+need a request to know what it may offer, unless the series says so.
+
+When the parent changes, the dependent value is cleared in the event
+handler of the parent. That is an event, not derived state, so it does
+not belong in an effect.
+
+The schema still validates the dependency, and the issue is attached
+to the field it belongs to.
+
+95. Value Cleanup
+
+The cleanup policy of this project:
+
+* the form state retains the value of a hidden field
+* the payload publishes only the visible value
+
+Retention keeps the input of the user, so switching back and forth
+does not destroy it. The schema decides what leaves the payload, so
+one policy serves every form.
+
+A form that needs a different policy states it in its own feature.
+
+96. Accessibility
+
+A dynamic section keeps the accessibility of a static one:
+
+* every control has a label, associated through FormItem
+* the add and remove controls carry a meaningful accessible name
+* a removed field leaves the accessibility tree
+* the error of a field stays in its FormMessage
+* a collection error is announced with role="alert"
+
+The identity of an item is stable, so an assistive technology keeps
+its place when an item is removed.
+
+97. Testing
+
+A dynamic form is tested by what the user can do:
+
+* add an item, remove an item, edit an item
+* the visible field follows the selected type
+* a hidden field does not block the submission
+* the options of a dependent field follow its parent
+* the values survive a failed submission
+
+Do not assert on the internals of the field array. Assert on the
+rendered controls and on the submitted payload.
+
+98. Documentation
+
+Each series keeps its report in
+
+    implementation/series-3/<series>/<task>/FINAL-REPORT.md
+
+The report states what changed, which checks ran, and what is still
+open.
+
+99. Strict Rules
+
+A form of this series MUST NOT:
+
+* keep a copy of a field value in useState
+* use the array index as a React key
+* validate a hidden field
+* add a request to decide what a field may offer
+* reach around the schema to report an error
+* introduce a second form library
+
+100. Validation
+
+Zod remains the only validation source.
+
+* the collection rules live on the array
+* the item rules live on the item
+* the dependency rule lives on the object and names the field it
+  belongs to
+* the payload is the output of the schema, never the raw form state
+
+101. Final Report
+
+Every series ends with FINAL-REPORT.md in its own task folder, next
+to the report of the previous series. The report states what changed,
+which checks ran, and what is still open.
+
+102. Recommendation for Series 3.6.6
+
+The form system of series 3.6.1 to 3.6.5 is ready for a submission
+that leaves the browser.
+
+The next series owns the boundary:
+
+* the contract of a submission
+* the route that validates and forwards
+* the mapping of a failure onto the form
+
+The form layer stays as it is: React Hook Form owns the state, Zod
+owns the validation, and the schema owns the payload.
