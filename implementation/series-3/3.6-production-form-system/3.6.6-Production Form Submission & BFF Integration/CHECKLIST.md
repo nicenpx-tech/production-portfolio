@@ -103,7 +103,7 @@
 
 ## J. Documentation
 
-- [x] `AGENTS.md` §92–§99
+- [x] `AGENTS.md` §103–§110
 - [x] `TASK.md`, `CHECKLIST.md`, `README.md`, `FINAL-REPORT.md` in this folder
 
 ---

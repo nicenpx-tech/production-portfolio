@@ -62,7 +62,7 @@ or APIs.
 - `apps/web/src/app/api/profile/route.ts` — the profile BFF route
 - `apps/web/src/features/profile/**` — schema, service, form integration
 - tests for the client, the handler, the route, and the form
-- AGENTS.md §92–§99
+- AGENTS.md §103–§110
 
 ### 2.2 Out of scope
 
@@ -87,7 +87,7 @@ or APIs.
 | Route instance | `app/api/profile/route.ts` |
 | Feature | `features/profile/schemas`, `features/profile/services`, `features/profile/components` |
 | Tests | 43 new tests across four files |
-| Docs | `AGENTS.md` §92–§99, this folder |
+| Docs | `AGENTS.md` §103–§110, this folder |
 
 ---
 

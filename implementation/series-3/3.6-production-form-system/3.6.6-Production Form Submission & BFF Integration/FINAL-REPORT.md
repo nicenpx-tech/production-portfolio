@@ -110,7 +110,7 @@ the field that keeps the user's input, and the recovery after a failure.
 
 ### 6. Documentation
 
-- `AGENTS.md` §92–§99: the submission contract, the BFF boundary, server
+- `AGENTS.md` §103–§110: the submission contract, the BFF boundary, server
   validation, error mapping, submission state, failure recovery, testing, and
   documentation
 - This folder: `TASK.md`, `CHECKLIST.md`, `README.md`, `FINAL-REPORT.md`
@@ -130,6 +130,26 @@ following defects were found and fixed:
 | Three unused `_format*` helpers and a missing type import | dead code, a type error | removed; the mapping lives in one place |
 | `new Error(error.message)` on an `unknown` | a non-Error throw produced `undefined` | the throw is normalized to a network failure |
 | `ProfileForm.test.tsx` overwritten | 13 passing component tests lost | restored and extended |
+
+### Repository state finding: series 3.6.5 is specified, not implemented
+
+While collecting the report of the previous series for the commit, the
+working tree was checked against what that report claims:
+
+- `apps/web/src/shared/forms/` holds `useZodForm.ts` only; there is no
+  `useFieldArray.ts`, `useWatch.ts`, `useDependentField.ts`, or
+  `useShouldUnregister.ts`
+- there is no `features/contact/` directory
+- `packages/ui` has no field-array component
+- the report of 3.6.5 claims 24 contact tests and 58 tests in total;
+  the repository held 34 tests before this series (4 form-foundation,
+  17 form-fields, 13 profile)
+
+The 3.6.5 documents are therefore a specification rather than a record of
+merged code. Sections 92 to 102 of `AGENTS.md` are reserved for the rules
+of that series, and this series uses 103 to 110. Implementing 3.6.5 is
+the next step in the series chain; this report does not claim to have
+delivered it.
 
 ## Verification Results
 
@@ -204,7 +224,7 @@ The BFF route is registered as a dynamic route, as a route handler must be.
 - **Failure semantics**: values survive a failure, the next attempt starts
   clean, and the success confirmation never appears while an error stands
 - **Testing**: 43 new tests across unit and integration level
-- **Documentation**: `AGENTS.md` §92–§99 and this folder
+- **Documentation**: `AGENTS.md` §103–§110 and this folder
 
 ### ✅ AGENTS.md Rules Followed
 

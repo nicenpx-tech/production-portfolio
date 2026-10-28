@@ -2049,7 +2049,13 @@ placeholder option).
 Object-level refinements run only after every field check passes.
 Attach cross-field issues to the field they belong to via path so
 the message renders through that field's FormMessage.
-92. Submission Contract
+
+Sections 92 to 102 are reserved for the field array, conditional
+field, and dependent field rules of series 3.6.5. That series is
+specified in its implementation folder, but its code is not in the
+repository yet, so its rules land here when it does.
+
+103. Submission Contract
 
 Form submissions use one shared contract, owned by the app:
 
@@ -2070,7 +2076,7 @@ The submitted values and the server response are different types.
 A form hands over its own values; the server may answer with
 another shape.
 
-93. BFF Boundary
+104. BFF Boundary
 
 The browser calls the BFF, never the Go backend.
 
@@ -2089,7 +2095,7 @@ createFormSubmissionRoute, which lives in
 apps/web/src/lib/form-submission-route.ts, and declares its
 schema and its backend path.
 
-94. Server Validation
+105. Server Validation
 
 Client-side validation is UX only. The BFF route validates the
 payload again with the feature schema before forwarding it.
@@ -2101,7 +2107,7 @@ so the browser and the server judge the same values.
 A rejected payload answers 400 with the failure kind validation
 and one field error per rejected field.
 
-95. Error Mapping
+106. Error Mapping
 
 submitWithFeedback, in
 apps/web/src/lib/form-submission-handler.ts, turns a normalized
@@ -2116,7 +2122,7 @@ FormRootError. A field path the form does not know is ignored.
 The handler MUST NOT reset the form and MUST NOT change field
 values. A failed submission keeps what the user typed.
 
-96. Submission State
+107. Submission State
 
 React Hook Form owns the submitting state. The submit button
 reflects formState.isSubmitting; no local loading state exists.
@@ -2128,7 +2134,7 @@ The handler awaits an async success callback before it resolves,
 so the form is not marked successful before its follow-up work
 ended.
 
-97. Failure Recovery
+108. Failure Recovery
 
 A new attempt starts clean. React Hook Form replaces the errors of
 the previous attempt when it validates again, so a stale message
@@ -2141,7 +2147,7 @@ The success confirmation checks isSubmitSuccessful together with
 the absence of a root error, so a rejected submission never
 reports success.
 
-98. Testing
+109. Testing
 
 Submission behaviour is tested at three levels:
 
@@ -2153,7 +2159,7 @@ Submission behaviour is tested at three levels:
 A test asserts what the user can observe: the request, the
 message, and the field state. Never a private helper.
 
-99. Documentation
+110. Documentation
 
 Every series keeps its report next to the report of the previous
 series:

@@ -99,7 +99,7 @@ status code.
   root error.
 - The browser never calls the Go API directly.
 
-The full rules live in `AGENTS.md` §92–§99.
+The full rules live in `AGENTS.md` §103–§110.
 
 ## Environment
 
