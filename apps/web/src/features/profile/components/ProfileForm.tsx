@@ -16,6 +16,7 @@ import {
   Textarea,
 } from "@repo/ui/components";
 import type { DefaultValues } from "react-hook-form";
+import { submitWithFeedback } from "@/lib/form-submission-handler";
 import { useZodForm } from "@/shared/forms";
 import {
   PROFILE_ROLES,
@@ -24,6 +25,7 @@ import {
   type ProfileSubmitValues,
   profileSchema,
 } from "../schemas/profile.schema";
+import { submitProfile } from "../services/profile-service";
 
 const ROLE_LABELS: Record<ProfileRole, string> = {
   engineer: "Engineer",
@@ -49,11 +51,10 @@ const EMPTY_PROFILE_VALUES: DefaultValues<ProfileFormValues> = {
 
 export interface ProfileFormProps {
   /**
-   * Receives the validated output values on a successful submit.
-   * Rejections are surfaced once at the form level as the root error.
-   * Submission is local in this series; the BFF call arrives later.
+   * Called with the accepted payload after the BFF confirmed the submission.
+   * A rejection is surfaced once at the form level as the root error.
    */
-  onSubmit?: (values: ProfileSubmitValues) => Promise<void>;
+  onSuccess?: (values: ProfileSubmitValues) => void | Promise<void>;
   /** Existing values for an edit form. */
   defaultValues?: ProfileFormValues;
 }
@@ -63,25 +64,34 @@ export interface ProfileFormProps {
  *
  * The form instance comes from useZodForm, so resolver and validation
  * timing live in one shared place and this component only declares its
- * schema and default values. Validated values are handed to onSubmit
- * already transformed (experienceYears arrives as a number), while a
- * rejected submission surfaces once through FormRootError without
- * touching field state.
+ * schema and default values. Validated values are handed to the BFF already
+ * transformed (experienceYears arrives as a number). Failures come back as
+ * normalized submission results: field problems land on their field, every
+ * other failure surfaces once through FormRootError without touching the
+ * values the user typed.
  */
-export function ProfileForm({ onSubmit, defaultValues }: ProfileFormProps) {
+export function ProfileForm({ onSuccess, defaultValues }: ProfileFormProps) {
   const form = useZodForm({
     schema: profileSchema,
     defaultValues: { ...EMPTY_PROFILE_VALUES, ...defaultValues },
   });
 
   const handleValidSubmit = async (values: ProfileSubmitValues) => {
+    const result = await submitWithFeedback(values, submitProfile, { form });
+
+    if (!result.ok) {
+      return;
+    }
+
     try {
-      await onSubmit?.(values);
+      // The payload was accepted. The caller gets the values it submitted,
+      // so it can refresh its cache with what the user entered.
+      await onSuccess?.(values);
     } catch {
-      // A rejected submission is a server concern: report it once at the
-      // form level. React Hook Form clears root errors on the next submit
-      // attempt, and field values are never modified.
+      // The payload was accepted but the follow-up work failed: report it
+      // once at the form level and keep the values so the user can retry.
       form.setError("root", {
+        type: "server",
         message: "Could not save your profile. Please try again.",
       });
     }
@@ -223,11 +233,15 @@ export function ProfileForm({ onSubmit, defaultValues }: ProfileFormProps) {
         <Button type="submit" disabled={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? "Saving…" : "Save profile"}
         </Button>
-        {form.formState.isSubmitted && !form.formState.isValid && (
-          <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-            Please correct the highlighted fields and try again.
-          </p>
-        )}
+        {/* Client-side validation reports once. A server failure already
+            arrives as the root error, so the line never appears twice. */}
+        {form.formState.isSubmitted &&
+          !form.formState.isValid &&
+          !form.formState.errors.root && (
+            <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+              Please correct the highlighted fields and try again.
+            </p>
+          )}
         {/* Server and submission failures render once, at the form level. */}
         <FormRootError />
         {/* Success means the submit resolved and no root error stands. */}
