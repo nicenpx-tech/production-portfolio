@@ -102,7 +102,10 @@ only the visible value.**
 ## Validation
 
 - `bun run typecheck` — no type errors
-- `bun run lint` — no lint errors (Biome formatter applied first)
+- `bun run lint` — no lint errors (Biome formatter applied first). The
+  committed `ProfileForm.test.tsx` did not satisfy the formatter, so the
+  lint gate of `develop` failed before this series; the single line the
+  formatter reports is fixed in its own commit
 - `bun run test` — 50 tests passed in 4 files
   - form-foundation 4, form-fields 17, profile 13, contact 16
 - `bun run build` — successful, the route `/[locale]/contact` is registered
