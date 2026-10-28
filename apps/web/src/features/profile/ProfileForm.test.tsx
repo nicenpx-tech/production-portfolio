@@ -281,9 +281,7 @@ describe("ProfileForm", () => {
     );
     await waitFor(() => {
       expect(
-        screen.queryByText(
-          "Add a contact email to show it on your profile.",
-        ),
+        screen.queryByText("Add a contact email to show it on your profile."),
       ).not.toBeInTheDocument();
     });
   });
