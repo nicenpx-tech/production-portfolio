@@ -286,6 +286,78 @@ describe("ContactForm", () => {
     ).toBeInTheDocument();
   });
 
+  it("keeps the value of the hidden slot when the type switches back", async () => {
+    const user = userEvent.setup();
+    render(<ContactForm />);
+
+    // The cleanup policy retains the value of a hidden field, so switching
+    // the type back and forth does not destroy what the user typed.
+    await fillEmailMethod(user, "kept@example.com");
+    await user.selectOptions(screen.getByLabelText("Contact type"), "phone");
+    await user.selectOptions(screen.getByLabelText("Contact type"), "email");
+
+    expect(screen.getByLabelText("Email address")).toHaveValue(
+      "kept@example.com",
+    );
+  });
+
+  it("moves the focus to the add control after a contact method is removed", async () => {
+    const user = userEvent.setup();
+    render(<ContactForm />);
+
+    const removeButton = screen.getByRole("button", {
+      name: "Remove contact method 1",
+    });
+    removeButton.focus();
+    await user.click(removeButton);
+
+    // The pressed button leaves the document with the item, so the focus
+    // must land on a control that is still there.
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: "Add contact method" }),
+      ).toHaveFocus();
+    });
+  });
+
+  it("keeps the remaining values after repeated add and remove operations", async () => {
+    const user = userEvent.setup();
+    const handleSubmit = vi.fn().mockResolvedValue(undefined);
+    render(<ContactForm onSubmit={handleSubmit} />);
+
+    await fillEmailMethod(user, "first@example.com");
+    await user.click(
+      screen.getByRole("button", { name: "Add contact method" }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Add contact method" }),
+    );
+    const emailInputs = screen.getAllByLabelText("Email address");
+    await user.type(emailInputs[1] as HTMLElement, "second@example.com");
+    await user.type(emailInputs[2] as HTMLElement, "third@example.com");
+
+    await user.click(
+      screen.getByRole("button", { name: "Remove contact method 2" }),
+    );
+
+    await fillLocation(user);
+    await user.click(
+      screen.getByRole("button", { name: "Save contact methods" }),
+    );
+
+    await waitFor(() => {
+      expect(handleSubmit).toHaveBeenCalledTimes(1);
+    });
+    expect(handleSubmit).toHaveBeenCalledWith({
+      methods: [
+        { type: "email", value: "first@example.com" },
+        { type: "email", value: "third@example.com" },
+      ],
+      country: "jp",
+      region: "tokyo",
+    });
+  });
+
   it("keeps the entered values when a submission is rejected", async () => {
     const user = userEvent.setup();
     const handleSubmit = vi.fn().mockRejectedValue(new Error("boom"));

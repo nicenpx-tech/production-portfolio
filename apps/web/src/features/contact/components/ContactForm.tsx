@@ -13,6 +13,7 @@ import {
   Input,
   Select,
 } from "@repo/ui/components";
+import { useEffect, useRef } from "react";
 import { useFieldArray, useWatch } from "react-hook-form";
 import { useZodForm } from "@/shared/forms";
 import {
@@ -123,6 +124,21 @@ export function ContactForm({ onSubmit, defaultValues }: ContactFormProps) {
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "methods",
+  });
+
+  // Removing an item takes the pressed button out of the document with it,
+  // so the browser drops the focus on the body. The add control is the
+  // stable neighbour of the collection, so the focus moves there.
+  const addButtonRef = useRef<HTMLButtonElement>(null);
+  const focusAddButtonAfterRemove = useRef(false);
+
+  useEffect(() => {
+    if (!focusAddButtonAfterRemove.current) {
+      return;
+    }
+
+    focusAddButtonAfterRemove.current = false;
+    addButtonRef.current?.focus();
   });
 
   // The current values decide what is visible. Watching the form is the
@@ -253,7 +269,10 @@ export function ContactForm({ onSubmit, defaultValues }: ContactFormProps) {
                   variant="outline"
                   size="sm"
                   aria-label={`Remove contact method ${index + 1}`}
-                  onClick={() => remove(index)}
+                  onClick={() => {
+                    focusAddButtonAfterRemove.current = true;
+                    remove(index);
+                  }}
                 >
                   Remove
                 </Button>
@@ -271,6 +290,7 @@ export function ContactForm({ onSubmit, defaultValues }: ContactFormProps) {
             type="button"
             variant="secondary"
             size="sm"
+            ref={addButtonRef}
             disabled={fields.length >= MAX_CONTACT_METHODS}
             onClick={() => append(EMPTY_METHOD)}
           >

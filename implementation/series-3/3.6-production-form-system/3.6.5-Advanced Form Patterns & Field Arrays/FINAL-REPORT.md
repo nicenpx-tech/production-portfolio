@@ -29,6 +29,10 @@ The series delivers the three patterns of the task, in one example form:
 - a **dependent field**, where the country decides which regions may be
   chosen
 
+Removing an item takes the pressed button out of the document with it, so
+the browser drops the focus on the body. The focus therefore moves to the
+add control, the stable neighbour of the collection.
+
 The shared composition layer (`apps/web/src/shared/forms/`) was **not**
 extended. The task forbids an abstraction that only wraps a line of React
 Hook Form code, and nothing in this series needs one: the form uses
@@ -83,7 +87,7 @@ only the visible value.**
 
 ## Tests
 
-`apps/web/src/features/contact/ContactForm.test.tsx` — 16 tests:
+`apps/web/src/features/contact/ContactForm.test.tsx` — 19 tests:
 
 - the initial collection and the accessible names of every control
 - adding, removing, and editing an item
@@ -94,8 +98,11 @@ only the visible value.**
 - the add control stops at the maximum
 - the phone field replaces the email field when the type changes
 - a hidden field does not block the submission
+- the value of the hidden slot survives a switch back and forth
 - the regions follow the country, and a changed country clears the region
 - a region that does not belong to the country is reported
+- the focus moves to the add control after an item is removed
+- the remaining values survive repeated add and remove operations
 - the entered values survive a rejected submission
 - the dynamic fields keep their labels and their accessible names
 
@@ -106,8 +113,8 @@ only the visible value.**
   committed `ProfileForm.test.tsx` did not satisfy the formatter, so the
   lint gate of `develop` failed before this series; the single line the
   formatter reports is fixed in its own commit
-- `bun run test` — 50 tests passed in 4 files
-  - form-foundation 4, form-fields 17, profile 13, contact 16
+- `bun run test` — 53 tests passed in 4 files
+  - form-foundation 4, form-fields 17, profile 13, contact 19
 - `bun run build` — successful, the route `/[locale]/contact` is registered
 - Storybook — not applicable, the shared UI package was not changed
 
